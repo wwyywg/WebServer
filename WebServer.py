@@ -2,7 +2,7 @@
 # 开发团队   :  未来科技
 # 开发人员   :  ww
 # 开发时间   :  2019-10-09 15:28
-# 文件名称   :  HttpServer.py
+# 文件名称   :  WebServer.py
 # 开发工具   :  PyCharm
 import socket
 from multiprocessing import Process
