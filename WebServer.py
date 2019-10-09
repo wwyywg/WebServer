@@ -29,6 +29,7 @@ def handleClient(clientSocket):
         if httpRequestBody:
             print(httpRequestBody)
         # 判断cookie是否存在
+        httpRequestCookies = None
         for line in requestHeaderLines:
             if "Cookie" in line.decode('utf-8'):
                 httpRequestCookies = line
@@ -55,14 +56,16 @@ def handleClient(clientSocket):
                 responseHeaderLines = "HTTP/1.1 200\r\n"
                 responseHeaderLines += "Content-Type: text/html\r\n"
                 responseHeaderLines += "\r\n"
-                responseBody = cookie
+                with open(cookie, 'r') as f:
+                    dataTxt = f.read()
+                    responseBody = dataTxt
                 # print("文件存在")
             else:
                 responseHeaderLines = "HTTP/1.1 302\r\n"
                 responseHeaderLines += "Location: login\r\n"
                 responseHeaderLines += "Content-Type: text/html\r\n"
                 responseHeaderLines += "\r\n"
-                responseBody = "admin"
+                responseBody = ""
                 # print("文件不存在")
 
         else:                       # cookie 不存在
@@ -70,7 +73,7 @@ def handleClient(clientSocket):
             responseHeaderLines += "Location: login\r\n"
             responseHeaderLines += "Content-Type: text/html\r\n"
             responseHeaderLines += "\r\n"
-            responseBody = "admin"
+            responseBody = ""
 
         response = responseHeaderLines + responseBody
         clientSocket.send(response.encode('utf-8'))
@@ -88,7 +91,6 @@ def handleClient(clientSocket):
             responseHeaderLines += "Content-Type: text/html;charset=utf-8\r\n"
             responseHeaderLines += "\r\n"
 
-
             response = responseHeaderLines + responseBody
             clientSocket.send(response.encode('utf-8'))
             clientSocket.close()
@@ -103,15 +105,18 @@ def handleClient(clientSocket):
                     if username == "admin" and password == "123456":
                         rand = random.randint(100000, 999999)
                         # 创建md5对象
-                        m = hashlib.md5()
-                        m.update(str(rand).encode('utf-8'))
-                        str_md5 = m.hexdigest()
+                        # m = hashlib.md5()
+                        # m.update(str(rand).encode('utf-8'))
+                        # str_md5 = m.hexdigest()
+                        with open(str(rand), 'w+') as f:
+                            f.write(username)
 
                         # print("登录成功!!!")
-                        responseHeaderLines = "HTTP/1.1 200\r\n"
-                        responseHeaderLines += "Content-Type: application/octet-stream\r\n"
-                        responseHeaderLines += "Set-Cookie:SESSID=%s\r\n"%str_md5
-                        responseHeaderLines += "Content-Disposition:attachment;filename=%s\r\n"%str_md5
+                        responseHeaderLines = "HTTP/1.1 302\r\n"
+                        # responseHeaderLines += "Content-Type: application/octet-stream\r\n"
+                        responseHeaderLines += "Set-Cookie:SESSID=%d\r\n"%rand
+                        # responseHeaderLines += "Content-Disposition:attachment;filename=%s\r\n"%str_md5
+                        responseHeaderLines += "Location: admin\r\n"
                         responseHeaderLines += "\r\n"
 
                         responseBody = username
