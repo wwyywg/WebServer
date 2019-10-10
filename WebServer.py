@@ -2,7 +2,7 @@
 # 开发团队   :  未来科技
 # 开发人员   :  ww
 # 开发时间   :  2019-10-09 15:28
-# 文件名称   :  WebServer.py
+# 文件名称   :  HttpServer.py
 # 开发工具   :  PyCharm
 import socket
 from multiprocessing import Process
@@ -49,14 +49,17 @@ def handleClient(clientSocket):
         clientSocket.close()
     elif getFileName == "/admin":
         if httpRequestCookies:      # 存在 cookie
-            cookies = httpRequestCookies.decode('utf-8').split('=')
-            cookie = cookies[1]
+            cookies = httpRequestCookies.decode('utf-8').split(';')
+            for cookie in cookies:
+                if "Cookie" in cookie:
+                    cookieVals = cookie.split('=')
+                    cookieVal = cookieVals[1]
 
-            if os.path.exists(cookie):
+            if os.path.exists(cookieVal):
                 responseHeaderLines = "HTTP/1.1 200\r\n"
                 responseHeaderLines += "Content-Type: text/html\r\n"
                 responseHeaderLines += "\r\n"
-                with open(cookie, 'r') as f:
+                with open(cookieVal, 'r') as f:
                     dataTxt = f.read()
                     responseBody = dataTxt
                 # print("文件存在")
@@ -68,7 +71,7 @@ def handleClient(clientSocket):
                 responseBody = ""
                 # print("文件不存在")
 
-        else:                       # cookie 不存在
+        else:                       # 不存在对应的cookie，则跳转到login
             responseHeaderLines = "HTTP/1.1 302\r\n"
             responseHeaderLines += "Location: login\r\n"
             responseHeaderLines += "Content-Type: text/html\r\n"
@@ -86,6 +89,21 @@ def handleClient(clientSocket):
         responseBody += '<br>'
         responseBody += '<input type="submit" value="提交">'
         responseBody += '</form>'
+        if httpRequestCookies:      # 存在对应的cookie，则跳转到admin
+            cookies = httpRequestCookies.decode('utf-8').split(';')
+            for cookie in cookies:
+                if "Cookie" in cookie:
+                    cookieVals = cookie.split('=')
+                    cookieVal = cookieVals[1]
+
+            if os.path.exists(cookieVal):
+                responseHeaderLines = "HTTP/1.1 302\r\n"
+                responseHeaderLines += "Location: admin\r\n"
+
+                responseBody = ""
+                response = responseHeaderLines + responseBody
+                clientSocket.send(response.encode('utf-8'))
+                # print("文件存在")
         if httpRequestMethod == "GET":      # GET请求
             responseHeaderLines = "HTTP/1.1 200 OK\r\n"
             responseHeaderLines += "Content-Type: text/html;charset=utf-8\r\n"
